@@ -10,19 +10,31 @@ organization = 'Название организации'
 
 
 def start_parsing():
+    global main_df
+    if not valid.error_main_df:
+        app.show_value('parsing_now', 'Подгрузи main_df', 'red', column=1)
+        return
     try:
         pages = int(app.pages.get())
     except:
         app.show_value('parsing_now', 'Страницы не в цифрах', 'red', column=1)
         return
-    pars.parsing(app.login.get(), app.password.get(), pages, app)
+    parsing_df = pars.parsing(app.login.get(), app.password.get(), pages)
+    try:
+        main_df = pd.concat([main_df, parsing_df])
+    except:
+        app.show_value('parsing_now', 'Что то пошло не так', 'red', column=1)      
     app.password.delete(0, 'end')
+    duplicates = len(parsing_df) - len(main_df[main_df.duplicated(subset='member_id_card')])
+    main_df.drop_duplicates(subset='member_id_card', inplace=True)
+    text = f'{len(parsing_df)} из них новых {duplicates}'
+    app.show_value('parsing_now', text, 'green', column=1)
         
 def save_bases():
     try:
         with ExcelWriter("main_df.xlsx") as writer:
             main_df.to_excel(writer, sheet_name="Sheet1", index=False)
-        with ExcelWriter('equring_df.xlsx') as writer:
+        with ExcelWriter('equaring_df.xlsx') as writer:
             equaring_df.to_excel(writer, sheet_name='Sheet1', index=False)
         messagebox.showerror("все ок", 'База успешно обновлена!')
     except:

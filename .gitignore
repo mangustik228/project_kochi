@@ -5,7 +5,9 @@ dist/
 source/
 [Originals]/
 equaring_df.csv
-main_df.xlsx
-equaring_df.xlsx
+main_df*.xlsx
+equaring_df*.xlsx
 pars*.xlsx
 test*
+equring*
+icon.ico
