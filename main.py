@@ -1,3 +1,4 @@
+from operator import index
 from tkinter import Button, Label, Tk, Frame, BOTH, filedialog, messagebox
 from numpy import insert
 import pandas as pd
@@ -5,78 +6,71 @@ from pandas import ExcelWriter
 
 organization = 'Название организации'
 
-
-def save_errors():
-    try:
-        with ExcelWriter("errors.xlsx") as writer:
-            uncorrect_df.to_excel(writer, sheet_name="Sheet1", index=False)
-        messagebox.showerror("все ок", 'Файл называется error.xlsx\n Успех!')
-    except:
-        messagebox.showerror("Ошибка", 'Что то пошло не так, судя по всему открыт файл.')
         
 
 def save_bases():
     try:
         with ExcelWriter("main_df.xlsx") as writer:
             main_df.to_excel(writer, sheet_name="Sheet1", index=False)
-        equaring_df.to_csv('equaring_df.csv', index=False)
+        with ExcelWriter('equring_df.xlsx') as writer:
+            equaring_df.to_excel(writer, sheet_name='Sheet1', index=False)
         messagebox.showerror("все ок", 'База успешно обновлена!')
     except:
         messagebox.showerror("Ошибка", 'Судя по всему открыт файл')
         
 
 def insert_by_id(row):
-    if row['pay_insert']:
-        return True
+    if row['pay_insert'] == 1:
+        return 1
     if len(main_df.loc[(main_df['member_id_card'] == row['member_card'])]) != 1:
-        return False
+        return 0
     if row['type'] == '1. Единоразовый вступительный взнос':
         if len(main_df.loc[(main_df['member_id_card'] == row['member_card']), 'equaring22_commin']) == 1:
             main_df.loc[(main_df['member_id_card'] == row['member_card']),
                         'equaring22_commin'] += row['sum']
             valid.insert_id += 1
-            return True
+            return 1
     if row['type'] == '2. Ежегодный членский взнос':
         if len(main_df.loc[(main_df['member_id_card'] == row['member_card']), 'equaring22_regular']) == 1:
             main_df.loc[(main_df['member_id_card'] == row['member_card']),
                         'equaring22_regular'] += row['sum']
             valid.insert_id += 1
-            return True
+            return 1
     if row['type'] == '3. Добровольное пожертвование':
         if len(main_df.loc[(main_df['member_id_card'] == row['member_card']), 'equaring22_charity']) == 1:
             main_df.loc[(main_df['member_id_card'] == row['member_card']),
                         'equaring22_charity'] += row['sum']
             valid.insert_id += 1
-            return True
+            return 1
     else:
-        return False
+        return 0
 
 
 def insert_by_name(row):
-    if row['pay_insert']:
-        return True
+    if row['pay_insert'] == 1:
+        return 1
     if len(main_df.loc[(main_df['correct_name'] == row['name'])]) != 1:
-        return False
+        return 0
     if row['type'] == '1. Единоразовый вступительный взнос':
         if len(main_df.loc[(main_df['correct_name'] == row['name']), 'equaring22_commin']) == 1:
             main_df.loc[(main_df['correct_name'] == row['name']),
                         'equaring22_commin'] += row['sum']
             valid.insert_names += 1
-            return True
+            return 1
     if row['type'] == '2. Ежегодный членский взнос':
         if len(main_df.loc[(main_df['correct_name'] == row['name']), 'equaring22_regular']) == 1:
             main_df.loc[(main_df['correct_name'] == row['name']),
                         'equaring22_regular'] += row['sum']
             valid.insert_names += 1
-            return True
+            return 1
     if row['type'] == '3. Добровольное пожертвование':
         if len(main_df.loc[(main_df['correct_name'] == row['name']), 'equaring22_charity']) == 1:
             main_df.loc[(main_df['correct_name'] == row['name']),
                         'equaring22_charity'] += row['sum']
             valid.insert_names += 1
-            return True
+            return 1
     else:
-        return False
+        return 0
 
 
 def create_classes():
@@ -87,11 +81,13 @@ class Check_errors():
     def __init__(self):
         self.error_main_df = False
         self.error_equaring_df = False
-        self.error_equaring_files = False
+        self.error_equaring_files = True
         self.insert_files = False
         self.insert_names = 0
         self.insert_id = 0
         self.insert_pays = 0
+        self.sum_error_pays_before = 0
+        self.sum_error_pays_after = 0
 
     def error_message(self):
         text_error = ''
@@ -137,8 +133,11 @@ class Equaring_df():
     def main_equaring_df():
         global equaring_df
         try:
-            equaring_df = pd.read_csv('equaring_df.csv')
+            equaring_df = pd.read_excel('equaring_df.xlsx')
             app.show_value('equaring_df', 'Файл подгружен', 'green')
+            app.show_value('errors_pays', len(equaring_df.query('pay_insert == 0')), 'red')
+            valid.sum_error_pays_before = len(equaring_df.query('pay_insert == 0'))
+            app.show_value('sum_df_equaring', equaring_df['sum'].sum(), 'green')
             valid.error_equaring_df = True
         except:
             app.show_value('equaring_df', 'Что то не так с файлом', 'red')
@@ -152,10 +151,11 @@ class Equaring_df():
         equaring_df['pay_insert'] = equaring_df.apply(insert_by_id, axis=1)
         equaring_df['pay_insert'] = equaring_df.apply(insert_by_name, axis=1)
         global uncorrect_df
-        uncorrect_df = equaring_df.query('pay_insert == False')
+        uncorrect_df = equaring_df.query('pay_insert == 0')
         app.show_value('member', valid.insert_id, 'green')
         app.show_value('fio', valid.insert_names, 'green')
-        app.show_value('errors_pays', len(uncorrect_df), 'red')
+        valid.sum_error_pays_after = len(equaring_df.query('pay_insert == 0'))
+        app.show_value('errors_pays', f'{valid.sum_error_pays_before} ({valid.sum_error_pays_after})', 'red')
 
 
 class Equaring_files():
@@ -192,13 +192,15 @@ class Equaring_files():
             except:
                 uncorrect_data.append(path)
         app.text_errors(uncorrect_data)
-        valid.error_main_df = True
         self.df.dropna(subset=['sum'], inplace=True)
         self.df['data'] = pd.to_datetime(
             self.df['data'], errors='coerce', format='%Y-%m-%d')
         self.df = self.df[self.df['id_pay'] != 'ID платежа']
-        self.df['pay_insert'] = False
-        self.df['member_card'] = self.df['member_card'].apply(self.del_zero)
+        self.df['pay_insert'] = 0
+        try:
+            self.df['member_card'] = self.df['member_card'].apply(self.del_zero)
+        except:
+            pass
         self.df.reset_index(drop=True, inplace=True)
         self.merge_files()
 
@@ -207,9 +209,11 @@ class Equaring_files():
         global equaring_df
         equaring_df = pd.concat([equaring_df, self.df])
         duplicates = len(equaring_df[equaring_df.duplicated(subset='id_pay')])
+        app.show_value('sum_pays', self.df['sum'].sum(), 'green')
         equaring_df.drop_duplicates(subset='id_pay', inplace=True)
-        app.show_value('sum_pays', len(self.df), 'green')
+        app.show_value('sum_pays_strings', len(self.df), 'green')
         app.show_value('duplicates_name', duplicates)
+        
 
     def del_zero(self, row):
         '''Удаление нулей в начале билета'''
@@ -282,8 +286,8 @@ class Main_window(Frame):
     def text_errors(self, texts):
         if len(texts) == 0:
             self.show_value('error_files', len(texts), 'green')
-            valid.error_equaring_files = True
         else:
+            valid.error_equaring_files = False
             self.show_value('error_files', len(texts), 'red')
             for i, text in enumerate(texts):
                 Label(self, text=f'не загружен: {text}', fg='red').grid(
@@ -295,11 +299,14 @@ class Main_window(Frame):
             'equaring_files_status': 2,
             'equaring_files_sum': 3,
             'error_files': 4,
-            'sum_pays': 5,
-            'duplicates_name': 6,
-            'member': 8,
-            'fio': 9,
-            'errors_pays': 10
+            'sum_pays_strings': 5,
+            'sum_pays': 6, # Сумма новых эквайрингов
+            'duplicates_name': 7,
+            'member': 9,
+            'fio': 10,
+            'errors_pays': 11,
+            'sum_df_equaring' : 50, # Сумма всех эквайрингов
+            'sum_error_equaring' : 13 # Сумма всех не внесенных эквайрингов
         '''
         dictor = {
             'main_df': 0,
@@ -307,14 +314,21 @@ class Main_window(Frame):
             'equaring_files_status': 2,
             'equaring_files_sum': 3,
             'error_files': 4,
-            'sum_pays': 5,
-            'duplicates_name': 6,
-            'member': 8,
-            'fio': 9,
-            'errors_pays': 10
+            'sum_pays_strings': 5,
+            'sum_pays': 6, # Сумма новых эквайрингов
+            'duplicates_name': 7,
+            'member': 9,
+            'fio': 10,
+            'errors_pays': 11,
+            'sum_df_equaring' : 50, # Сумма всех эквайрингов
+            'sum_error_equaring' : 13 # Сумма всех не внесенных эквайрингов
         }
-        Label(self, text=value, fg=color).grid(
-            row=dictor[show_cell], column=2, padx=3, pady=3, sticky='we')
+        if dictor[show_cell] == 50:
+            Label(self, text=value, fg=color).grid(
+                row=1, column=1, padx=3, pady=3, sticky='we')
+        else:
+            Label(self, text=value, fg=color).grid(
+                row=dictor[show_cell], column=2, padx=3, pady=3, sticky='we')
 
     def init_metod(self):
         '''Метод вызываемый при инициализации, указываются размеры окна и статичные виджеты
@@ -325,7 +339,7 @@ class Main_window(Frame):
 
         Button(self, text='Выбрать базу данных', command=InputFileDf.choose_df).grid(
             row=0, column=0, sticky='we')
-        Label(self, text='База equaring_df.csv:').grid(
+        Label(self, text='База equaring_df.xlsx:').grid(
             row=1, column=0, sticky='we')
         Button(self, text='Выбрать файлы для эквайринга', command=create_classes).grid(
             row=2, column=0, pady=3, padx=3, sticky='we')
@@ -333,21 +347,20 @@ class Main_window(Frame):
             row=3, column=1, padx=3, pady=3, sticky='e')
         Label(self, text='Из них косячных:').grid(
             row=4, column=1, padx=3, pady=3, sticky='e')
-        Label(self, text='Сумма оплат в выгрузке:').grid(
+        Label(self, text='Сумма строк в выгрузке:').grid(
             row=5, column=1, padx=3, pady=3, sticky='e')
-        Label(self, text='Уже были внесены:').grid(
+        Label(self, text='Сумма оплат в выгрузке:').grid(
             row=6, column=1, padx=3, pady=3, sticky='e')
+        Label(self, text='Уже были внесены:').grid(
+            row=7, column=1, padx=3, pady=3, sticky='e')
         Button(self, text='Внести оплаты', command=Equaring_df.insert_pay).grid(
-            row=7, column=2, sticky='we')
+            row=8, column=2, sticky='we')
         Label(self, text='Внесено по читательскому:').grid(
-            row=8, column=1, padx=3, pady=3, sticky='e')
-        Label(self, text='Внесено по ФИО:').grid(
             row=9, column=1, padx=3, pady=3, sticky='e')
-        # Label(self, text='Дубликаты ID платежа:').grid(row=9, column=1, padx=3, pady=3, sticky='e')
-        Label(self, text='Не внесено:').grid(
+        Label(self, text='Внесено по ФИО:').grid(
             row=10, column=1, padx=3, pady=3, sticky='e')
-        Button(self, text='Сохранить не внесенные', command=save_errors).grid(
-            row=11, column=2, sticky='we')
+        Label(self, text='Не внесено:').grid(
+            row=11, column=1, padx=3, pady=3, sticky='e')
         Button(self, text='Сохранить базы', command=save_bases).grid(
             row=12, column=0, columnspan=2, sticky='we')
         Button(self, text='Выход', command=self.quit).grid(
