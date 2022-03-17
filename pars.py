@@ -5,13 +5,15 @@ import fake_useragent
 from bs4 import BeautifulSoup
 from time import sleep
 
-def parsing():
-    sum_pages = 1
+from sqlalchemy import column
+
+
+def parsing(login, password, sum_pages, app):
     session = requests.Session()
     user = fake_useragent.UserAgent().random
     data = {
-    'name' : input('name: '),
-    'pass' : input('password: '),
+    'name' : login,
+    'pass' : password,
     'form_id' : 'user_login',
     'op' : 'Войти'
     }
@@ -21,12 +23,11 @@ def parsing():
     url = 'https://lk.rgo.ru/user_admin'  # url с адресом где авторизовываемся
     response = session.post(url, data=data, headers=header).text # Создаем сессию и передаем user-agent url
     urls_with_members = parsing_urls(sum_pages, session)
-    df = parsing_members(urls_with_members, session)
+    df = parsing_members(urls_with_members, session, app)
     df.drop(columns=['lastname', 'first_name', 'middle_name', 'country', 'member_id_card_status', 'member_region', 'adress'], inplace=True)
     main_df = pd.read_excel('main_df.xlsx')
     main_df = pd.concat([main_df, df]) 
-    with ExcelWriter("pars-3.xlsx") as writer:
-        main_df.to_excel(writer, sheet_name="Sheet1", index=False)
+    return df
     
     
 def parsing_urls(sum_pages, session):
@@ -47,7 +48,7 @@ def parsing_urls(sum_pages, session):
         sleep(2)
     return(urls_with_members)
 
-def parsing_members(urls_with_members, session):
+def parsing_members(urls_with_members, session, app):
     df = pd.DataFrame(columns=['page', 'correct_name', 'lastname', 'first_name', 
                                'middle_name', 'country', 'birthday', 'work_place', 
                                'type_employment', 'member_region', 'member_status', 
@@ -55,6 +56,7 @@ def parsing_members(urls_with_members, session):
                                'member_year', 'adress', 'phone_one', 'email'])
     for index, page in enumerate(urls_with_members):
         print(f'пройдено {index} из {len(urls_with_members)}')
+        app.show_value('parsing_now', index, 'green', column=1)
         try:
             df = pd.concat([df, pars_person_info(page, session)])
         except:
@@ -167,17 +169,5 @@ def pars_person_info(page, session):
     # Есть лишние столбцы, по идеи надо бы удалить, но мне лень, и возможно что то переиграется, поэтому оставлю как есть
     return df
 
-
-    
-
-    # for href in hrefs:
-    #     href = href.find('a').get('href')
-    #     href = 'https://lk.rgo.ru' + href
-    #     links.append(href)
-    #     file_with_links.write(href + '\n')
-    
-    
-
-
 if __name__ == '__main__':
-    parsing()
+    parsing(1)

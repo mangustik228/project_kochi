@@ -1,13 +1,23 @@
 from operator import index
+import tkinter as tk
 from tkinter import Button, Label, Tk, Frame, BOTH, filedialog, messagebox
 from numpy import insert
 import pandas as pd
 from pandas import ExcelWriter
+import pars
 
 organization = 'Название организации'
 
-        
 
+def start_parsing():
+    try:
+        pages = int(app.pages.get())
+    except:
+        app.show_value('parsing_now', 'Страницы не в цифрах', 'red', column=1)
+        return
+    pars.parsing(app.login.get(), app.password.get(), pages, app)
+    app.password.delete(0, 'end')
+        
 def save_bases():
     try:
         with ExcelWriter("main_df.xlsx") as writer:
@@ -282,6 +292,7 @@ class Main_window(Frame):
         '''
         super().__init__()
         self.init_metod()
+        
 
     def text_errors(self, texts):
         if len(texts) == 0:
@@ -291,9 +302,9 @@ class Main_window(Frame):
             self.show_value('error_files', len(texts), 'red')
             for i, text in enumerate(texts):
                 Label(self, text=f'не загружен: {text}', fg='red').grid(
-                    row=i+15, columnspan=4, sticky='w')
+                    row=i+20, columnspan=4, sticky='w')
 
-    def show_value(self, show_cell, value, color='black'):
+    def show_value(self, show_cell, value, color='black', column=2):
         ''' 'main_df': 0,
             'equaring_df': 1,
             'equaring_files_status': 2,
@@ -305,8 +316,12 @@ class Main_window(Frame):
             'member': 9,
             'fio': 10,
             'errors_pays': 11,
+            'login' : 12,
+            'password' : 13,
+            'need_pages' : 14,
+            'parsing_now' : 15, 
             'sum_df_equaring' : 50, # Сумма всех эквайрингов
-            'sum_error_equaring' : 13 # Сумма всех не внесенных эквайрингов
+            'sum_error_equaring' : 17 # Сумма всех не внесенных эквайрингов
         '''
         dictor = {
             'main_df': 0,
@@ -320,22 +335,26 @@ class Main_window(Frame):
             'member': 9,
             'fio': 10,
             'errors_pays': 11,
+            'login' : 12,
+            'password' : 13,
+            'need_pages' : 14,
+            'parsing_now' : 15, 
             'sum_df_equaring' : 50, # Сумма всех эквайрингов
-            'sum_error_equaring' : 13 # Сумма всех не внесенных эквайрингов
+            'sum_error_equaring' : 17 # Сумма всех не внесенных эквайрингов
         }
         if dictor[show_cell] == 50:
             Label(self, text=value, fg=color).grid(
                 row=1, column=1, padx=3, pady=3, sticky='we')
         else:
             Label(self, text=value, fg=color).grid(
-                row=dictor[show_cell], column=2, padx=3, pady=3, sticky='we')
+                row=dictor[show_cell], column=column, padx=3, pady=3, sticky='we')
 
     def init_metod(self):
         '''Метод вызываемый при инициализации, указываются размеры окна и статичные виджеты
         '''
         self.master.title(organization)
         self.pack(fill=BOTH, expand=1)
-        self.master.geometry('530x400+100+25')
+        self.master.geometry('530x600+100+25')
 
         Button(self, text='Выбрать базу данных', command=InputFileDf.choose_df).grid(
             row=0, column=0, sticky='we')
@@ -361,11 +380,26 @@ class Main_window(Frame):
             row=10, column=1, padx=3, pady=3, sticky='e')
         Label(self, text='Не внесено:').grid(
             row=11, column=1, padx=3, pady=3, sticky='e')
+        Label(self, text='Введите логин:').grid(
+            row=12, column=0, padx=3, pady=3, sticky='e')
+        Label(self, text='Введите пароль:').grid(
+            row=13, column=0, padx=3, pady=3, sticky='e')
+        Label(self, text='Сколько страниц спарсить:').grid(
+            row=14, column=0, padx=3, pady=3, sticky='e')
+        Label(self, text='Спарсено:').grid(
+            row=15, column=0, padx=3, pady=3, sticky='e')
+        self.login = tk.Entry(self)
+        self.login.grid(row=12, column=1, padx=3, pady=3, sticky='we')
+        self.password = tk.Entry(self, show='*')
+        self.password.grid(row=13, column=1, padx=3, pady=3, sticky='we')
+        self.pages = tk.Entry(self)
+        self.pages.grid(row=14, column=1, padx=3, pady=3, sticky='we')
+        Button(self, text='Начать парсирить', command=start_parsing).grid(
+            row=16, column=0, columnspan=2, sticky='we')
         Button(self, text='Сохранить базы', command=save_bases).grid(
-            row=12, column=0, columnspan=2, sticky='we')
+            row=17, column=0, columnspan=2, sticky='we')
         Button(self, text='Выход', command=self.quit).grid(
-            row=12, column=2, sticky='we')
-
+            row=17, column=2, sticky='we')
         self.show_value('main_df', 'Необходимо выбрать файл', 'red')
         self.show_value('equaring_files_status',
                         'Необходимо выбрать файлы', 'red')
