@@ -5,8 +5,7 @@ import fake_useragent
 from bs4 import BeautifulSoup
 from time import sleep
 import re
-
-from sqlalchemy import column
+from .urls import admin_url, member_url, main_url
 
 def clean_id(row):
     pattern = r'[0-9]+-*[0-9]*'
@@ -28,7 +27,7 @@ def parsing(login, password, sum_pages):
     header =  {
     'user-agent' : user
     }
-    url = 'https://lk.rgo.ru/user_admin'  # url с адресом где авторизовываемся
+    url = admin_url  # url с адресом где авторизовываемся
     response = session.post(url, data=data, headers=header).text # Создаем сессию и передаем user-agent url
     urls_with_members = parsing_urls(sum_pages, session)
     df = parsing_members(urls_with_members, session)
@@ -42,15 +41,15 @@ def parsing_urls(sum_pages, session):
     urls_with_members = []
     for now_url in range(sum_pages):
         if now_url == 0:
-            page = 'https://lk.rgo.ru/members'
+            page = member_url
         else:
-            page = f'https://lk.rgo.ru/members?page={now_url}'
+            page = f'{member_url}?page={now_url}'
         page_responce = session.get(page)  # Переходим поочередно на страницы из нашего массива 
         soup = BeautifulSoup(page_responce.text, 'lxml') # Получаем суп из нашей страницы
         hrefs = soup.findAll('td', class_='views-field views-field-title')
         for href in hrefs:
             href = href.find('a').get('href')
-            href = 'https://lk.rgo.ru' + href
+            href = main_url + href
             urls_with_members.append(href)
         sleep(2)
     return(urls_with_members)

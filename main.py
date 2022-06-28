@@ -1,10 +1,8 @@
-from operator import index
 import tkinter as tk
 from tkinter import Button, Label, Tk, Frame, BOTH, filedialog, messagebox
-from numpy import insert
 import pandas as pd
 from pandas import ExcelWriter
-import pars
+import parsing.pars as pars
 
 organization = 'Название организации'
 
@@ -161,7 +159,7 @@ class Equaring_df():
             valid.sum_error_pays_before = len(equaring_df.query('pay_insert == 0'))
             app.show_value('sum_df_equaring', equaring_df['sum'].sum(), 'green')
             valid.error_equaring_df = True
-        except:
+        except Exception as e:
             app.show_value('equaring_df', 'Что то не так с файлом', 'red')
 
     def insert_pay():
