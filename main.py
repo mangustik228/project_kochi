@@ -160,6 +160,7 @@ class Equaring_df():
             app.show_value('sum_df_equaring', equaring_df['sum'].sum(), 'green')
             valid.error_equaring_df = True
         except Exception as e:
+            print(e)
             app.show_value('equaring_df', 'Что то не так с файлом', 'red')
 
     def insert_pay():
@@ -197,6 +198,8 @@ class Equaring_files():
                        'type', 'name', 'period')
         name_row_v8 = ('id_pay', 'data', 'sum', 'phone',
                        'type', 'name', 'member_card', 'period')
+        name_row_v9 = ('id_pay', 'data', 'sum', 'phone',
+                       'type', 'name', 'member_card', 'period', 'email')
         uncorrect_data = []
 
         for path in self.path:
@@ -206,8 +209,10 @@ class Equaring_files():
                     df.set_axis(name_row_v6, axis=1, inplace=True)
                 elif len(df.columns) == 7:
                     df.set_axis(name_row_v7, axis=1, inplace=True)
-                else:
+                elif len(df.columns) == 8:
                     df.set_axis(name_row_v8, axis=1, inplace=True)
+                elif len(df.columns) == 9:
+                    df.set_axis(name_row_v9, axis=1, inplace=True)
                 self.df = pd.concat([self.df, df])
             except:
                 uncorrect_data.append(path)
@@ -384,7 +389,7 @@ class Main_window(Frame):
             row=7, column=1, padx=3, pady=3, sticky='e')
         Button(self, text='Внести оплаты', command=Equaring_df.insert_pay).grid(
             row=8, column=2, sticky='we')
-        Label(self, text='Внесено по читательскому:').grid(
+        Label(self, text='Внесено по ЧБ:').grid(
             row=9, column=1, padx=3, pady=3, sticky='e')
         Label(self, text='Внесено по ФИО:').grid(
             row=10, column=1, padx=3, pady=3, sticky='e')

@@ -13,3 +13,5 @@ equring*
 icon.ico
 parsing/urls.py 
 main.spec 
+venv
+*.xlsx
