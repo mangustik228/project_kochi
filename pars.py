@@ -5,14 +5,14 @@ import fake_useragent
 from bs4 import BeautifulSoup
 from time import sleep
 import re
-from .urls import admin_url, member_url, main_url
+from tqdm import tqdm
+from urls import admin_url, member_url, main_url
 
 def clean_id(row):
     pattern = r'[0-9]+-*[0-9]*'
     if ''.join(re.findall(pattern, row)) == '':
         return 'Безбилетник'
     return ''.join(re.findall(pattern, row))
-    
 
 
 def parsing(login, password, sum_pages):
@@ -51,7 +51,7 @@ def parsing_urls(sum_pages, session):
             href = href.find('a').get('href')
             href = main_url + href
             urls_with_members.append(href)
-        sleep(2)
+        sleep(1)
     return(urls_with_members)
 
 def parsing_members(urls_with_members, session):
@@ -60,12 +60,12 @@ def parsing_members(urls_with_members, session):
                                'type_employment', 'member_region', 'member_status', 
                                'member_id_card', 'member_id_card_status', 'member_data', 
                                'member_year', 'adress', 'phone_one', 'email'])
-    for index, page in enumerate(urls_with_members):
+    for page in tqdm(urls_with_members):
         try:
             df = pd.concat([df, pars_person_info(page, session)])
         except:
             break
-        sleep(2)
+        sleep(0.8)
     df = df.reset_index(drop=True)
     return df
 

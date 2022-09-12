@@ -2,7 +2,8 @@ import tkinter as tk
 from tkinter import Button, Label, Tk, Frame, BOTH, filedialog, messagebox
 import pandas as pd
 from pandas import ExcelWriter
-import parsing.pars as pars
+import pars
+
 
 organization = 'Название организации'
 
