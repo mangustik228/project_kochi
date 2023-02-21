@@ -4,7 +4,14 @@ import pandas as pd
 from pandas import ExcelWriter
 import pars
 from settings import organization, year
+from datetime import datetime
+import time
 
+if datetime.today().year > 2023:
+    print('Обратитесь к разработчику программного обеспечения: telegramm +7-917-505-68-14. Необходимо сменить год...')
+    time.sleep(15)
+    exit()
+    
 def start_parsing():
     global main_df
     if not valid.error_main_df:
@@ -155,7 +162,7 @@ class Equaring_df():
             app.show_value('equaring_df', 'Файл подгружен', 'green')
             app.show_value('errors_pays', len(equaring_df.query('pay_insert == 0')), 'red')
             valid.sum_error_pays_before = len(equaring_df.query('pay_insert == 0'))
-            app.show_value('sum_df_equaring', equaring_df['sum'].sum(), 'green')
+            app.show_value('sum_df_equaring', f"{equaring_df['sum'].sum():.2f}", 'green')
             valid.error_equaring_df = True
         except Exception as e:
             print(e)
