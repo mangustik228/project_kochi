@@ -16,3 +16,5 @@ main.spec
 venv
 *.xlsx
 urls.py
+settings.py
+payments

@@ -3,10 +3,7 @@ from tkinter import Button, Label, Tk, Frame, BOTH, filedialog, messagebox
 import pandas as pd
 from pandas import ExcelWriter
 import pars
-
-
-organization = 'Название организации'
-
+from settings import organization, year
 
 def start_parsing():
     global main_df
@@ -46,21 +43,21 @@ def insert_by_id(row):
     if len(main_df.loc[(main_df['member_id_card'] == row['member_card'])]) != 1:
         return 0
     if row['type'] == '1. Единоразовый вступительный взнос':
-        if len(main_df.loc[(main_df['member_id_card'] == row['member_card']), 'equaring22_commin']) == 1:
+        if len(main_df.loc[(main_df['member_id_card'] == row['member_card']), f'equaring{year}_commin']) == 1:
             main_df.loc[(main_df['member_id_card'] == row['member_card']),
-                        'equaring22_commin'] += row['sum']
+                        f'equaring{year}_commin'] += row['sum']
             valid.insert_id += 1
             return 1
     if row['type'] == '2. Ежегодный членский взнос':
-        if len(main_df.loc[(main_df['member_id_card'] == row['member_card']), 'equaring22_regular']) == 1:
+        if len(main_df.loc[(main_df['member_id_card'] == row['member_card']), f'equaring{year}_regular']) == 1:
             main_df.loc[(main_df['member_id_card'] == row['member_card']),
-                        'equaring22_regular'] += row['sum']
+                        f'equaring{year}_regular'] += row['sum']
             valid.insert_id += 1
             return 1
     if row['type'] == '3. Добровольное пожертвование':
-        if len(main_df.loc[(main_df['member_id_card'] == row['member_card']), 'equaring22_charity']) == 1:
+        if len(main_df.loc[(main_df['member_id_card'] == row['member_card']), f'equaring{year}_charity']) == 1:
             main_df.loc[(main_df['member_id_card'] == row['member_card']),
-                        'equaring22_charity'] += row['sum']
+                        f'equaring{year}_charity'] += row['sum']
             valid.insert_id += 1
             return 1
     else:
@@ -73,21 +70,21 @@ def insert_by_name(row):
     if len(main_df.loc[(main_df['correct_name'] == row['name'])]) != 1:
         return 0
     if row['type'] == '1. Единоразовый вступительный взнос':
-        if len(main_df.loc[(main_df['correct_name'] == row['name']), 'equaring22_commin']) == 1:
+        if len(main_df.loc[(main_df['correct_name'] == row['name']), f'equaring{year}_commin']) == 1:
             main_df.loc[(main_df['correct_name'] == row['name']),
-                        'equaring22_commin'] += row['sum']
+                        f'equaring{year}_commin'] += row['sum']
             valid.insert_names += 1
             return 1
     if row['type'] == '2. Ежегодный членский взнос':
-        if len(main_df.loc[(main_df['correct_name'] == row['name']), 'equaring22_regular']) == 1:
+        if len(main_df.loc[(main_df['correct_name'] == row['name']), f'equaring{year}_regular']) == 1:
             main_df.loc[(main_df['correct_name'] == row['name']),
-                        'equaring22_regular'] += row['sum']
+                        f'equaring{year}_regular'] += row['sum']
             valid.insert_names += 1
             return 1
     if row['type'] == '3. Добровольное пожертвование':
-        if len(main_df.loc[(main_df['correct_name'] == row['name']), 'equaring22_charity']) == 1:
+        if len(main_df.loc[(main_df['correct_name'] == row['name']), f'equaring{year}_charity']) == 1:
             main_df.loc[(main_df['correct_name'] == row['name']),
-                        'equaring22_charity'] += row['sum']
+                        f'equaring{year}_charity'] += row['sum']
             valid.insert_names += 1
             return 1
     else:
@@ -274,22 +271,22 @@ class InputFileDf():
             app.show_value('main_df', 'Выбранный файл косячный', 'red')
 
     def check_file(df):
-        '''проверка файла на наличие столбцов equaring22...
+        '''проверка файла на наличие столбцовf equaring{year}...
         Args:
             df (DataFrame): dataFrame from choose_df
 
         Raises:
             TypeError: Входящий файл не является датафреймом, либо не содержит нужные столбцы
         '''
-        check_massiv = ('equaring22_charity', 'equaring22_regular',
-                        'equaring22_charity', 'member_id_card')
+        check_massiv = (f'equaring{year}_charity', f'equaring{year}_regular',
+                        f'equaring{year}_charity', 'member_id_card')
         columns = tuple(df.columns)
         for check in check_massiv:
             if check not in columns:
                 raise TypeError
-        df['equaring22_commin'].fillna(0, inplace=True)
-        df['equaring22_regular'].fillna(0, inplace=True)
-        df['equaring22_charity'].fillna(0, inplace=True)
+        df[f'equaring{year}_commin'].fillna(0, inplace=True)
+        df[f'equaring{year}_regular'].fillna(0, inplace=True)
+        df[f'equaring{year}_charity'].fillna(0, inplace=True)
 
 
 class Main_window(Frame):

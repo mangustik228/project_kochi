@@ -6,7 +6,7 @@ from bs4 import BeautifulSoup
 from time import sleep
 import re
 from tqdm import tqdm
-from urls import admin_url, member_url, main_url
+from settings import admin_url, member_url, main_url
 
 def clean_id(row):
     pattern = r'[0-9]+-*[0-9]*'
